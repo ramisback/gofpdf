@@ -189,7 +189,7 @@ func (utf *utf8FontFile) skip(delta int) {
 	_, _ = utf.fileReader.seek(int64(delta), 1)
 }
 
-//SeekTable position
+// SeekTable position
 func (utf *utf8FontFile) SeekTable(name string) int {
 	return utf.seekTable(name, 0)
 }
@@ -446,7 +446,7 @@ func (utf *utf8FontFile) parsePOSTTable(weight int) {
 	}
 }
 
-func (utf *utf8FontFile) parseCMAPTable(format int) int {
+func (utf *utf8FontFile) parseCMAPTable() int {
 	cmapPosition := utf.SeekTable("cmap")
 	utf.skip(2)
 	cmapTableCount := utf.readUint16()
@@ -457,7 +457,7 @@ func (utf *utf8FontFile) parseCMAPTable(format int) int {
 		position := utf.readUint32()
 		oldReaderPosition := utf.fileReader.readerPosition
 		if (system == 3 && coded == 1) || system == 0 { // Microsoft, Unicode
-			format = utf.getUint16(cmapPosition + position)
+			format := utf.getUint16(cmapPosition + position)
 			if format == 4 {
 				if cidCMAPPosition == 0 {
 					cidCMAPPosition = cmapPosition + position
@@ -475,12 +475,12 @@ func (utf *utf8FontFile) parseCMAPTable(format int) int {
 }
 
 func (utf *utf8FontFile) parseTables() {
-	f := utf.parseNAMETable()
+	_ = utf.parseNAMETable()
 	utf.parseHEADTable()
 	n := utf.parseHHEATable()
 	w := utf.parseOS2Table()
 	utf.parsePOSTTable(w)
-	runeCMAPPosition := utf.parseCMAPTable(f)
+	runeCMAPPosition := utf.parseCMAPTable()
 
 	utf.SeekTable("maxp")
 	utf.skip(4)
@@ -608,10 +608,7 @@ func (utf *utf8FontFile) generateCMAPTable(cidSymbolPairCollection map[int]int, 
 	cmap = append(cmap, 0xFFFF)
 	cmap = append(cmap, 0)
 
-	for _, cidKey := range cidArrayKeys {
-		cmap = append(cmap, cidKey)
-	}
-	cmap = append(cmap, 0xFFFF)
+	cmap = append(cmap, cidArrayKeys...)
 	for _, cidKey := range cidArrayKeys {
 		idDelta := -(cidKey - cidArray[cidKey][0])
 		cmap = append(cmap, idDelta)
@@ -623,9 +620,7 @@ func (utf *utf8FontFile) generateCMAPTable(cidSymbolPairCollection map[int]int, 
 	}
 	cmap = append(cmap, 0)
 	for _, start := range cidArrayKeys {
-		for _, glidx := range cidArray[start] {
-			cmap = append(cmap, glidx)
-		}
+		cmap = append(cmap, cidArray[start]...)
 	}
 	cmap = append(cmap, 0)
 	cmapstr := make([]byte, 0)
@@ -635,7 +630,7 @@ func (utf *utf8FontFile) generateCMAPTable(cidSymbolPairCollection map[int]int, 
 	return cmapstr
 }
 
-//GenerateCutFont fill utf8FontFile from .utf file, only with runes from usedRunes
+// GenerateCutFont fill utf8FontFile from .utf file, only with runes from usedRunes
 func (utf *utf8FontFile) GenerateCutFont(usedRunes map[int]int) []byte {
 	utf.fileReader.readerPosition = 0
 	utf.symbolPosition = make([]int, 0)
@@ -698,6 +693,9 @@ func (utf *utf8FontFile) GenerateCutFont(usedRunes map[int]int) []byte {
 	utf.symbolData = make(map[int]map[string][]int, 0)
 
 	for _, originalSymbolIdx := range symbolCollectionKeys {
+		if originalSymbolIdx >= len(utf.symbolPosition) || originalSymbolIdx+1 >= len(utf.symbolPosition) {
+			continue
+		}
 		hm := utf.getMetrics(oldMetrics, originalSymbolIdx)
 		hmtxData = append(hmtxData, hm...)
 
@@ -791,6 +789,9 @@ func (utf *utf8FontFile) GenerateCutFont(usedRunes map[int]int) []byte {
 }
 
 func (utf *utf8FontFile) getSymbols(originalSymbolIdx int, start *int, symbolSet map[int]int, SymbolsCollection map[int]int, SymbolsCollectionKeys []int) (*int, map[int]int, map[int]int, []int) {
+	if originalSymbolIdx >= len(utf.symbolPosition) || originalSymbolIdx+1 >= len(utf.symbolPosition) {
+		return start, symbolSet, SymbolsCollection, SymbolsCollectionKeys
+	}
 	symbolPos := utf.symbolPosition[originalSymbolIdx]
 	symbolSize := utf.symbolPosition[originalSymbolIdx+1] - symbolPos
 	if symbolSize == 0 {

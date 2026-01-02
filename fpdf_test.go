@@ -32,9 +32,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jung-kurt/gofpdf"
-	"github.com/jung-kurt/gofpdf/internal/example"
-	"github.com/jung-kurt/gofpdf/internal/files"
+	"gofpdf"
+	"gofpdf/internal/example"
+	"gofpdf/internal/files"
 )
 
 func init() {
@@ -42,7 +42,7 @@ func init() {
 }
 
 func cleanup() {
-	filepath.Walk(example.PdfDir(),
+	if err := filepath.Walk(example.PdfDir(),
 		func(path string, info os.FileInfo, err error) (reterr error) {
 			if info.Mode().IsRegular() {
 				dir, _ := filepath.Split(path)
@@ -55,7 +55,9 @@ func cleanup() {
 				}
 			}
 			return
-		})
+		}); err != nil {
+		panic(err)
+	}
 }
 
 func TestFpdfImplementPdf(t *testing.T) {
@@ -147,9 +149,7 @@ func TestIssue0193(t *testing.T) {
 // TestIssue0209SplitLinesEqualMultiCell addresses issue 209
 // make SplitLines and MultiCell split at the same place
 func TestIssue0209SplitLinesEqualMultiCell(t *testing.T) {
-	var pdf *gofpdf.Fpdf
-
-	pdf = gofpdf.New("P", "mm", "A4", "")
+	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "", 8)
 	// this sentence should not be splited

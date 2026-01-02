@@ -279,9 +279,10 @@ func (t *ttfParser) ParseName() (err error) {
 				if err != nil {
 					return
 				}
-				s = strings.Replace(s, "\x00", "", -1)
+				s = strings.ReplaceAll(s, "\x00", "")
 				var re *regexp.Regexp
-				if re, err = regexp.Compile("[(){}<> /%[\\]]"); err != nil {
+				re, err = regexp.Compile(`[(){}<> /%\[\]\\]`)
+				if err != nil {
 					return
 				}
 				t.rec.PostScriptName = re.ReplaceAllString(s, "")
@@ -359,16 +360,22 @@ func (t *ttfParser) ReadStr(length int) (str string, err error) {
 }
 
 func (t *ttfParser) ReadUShort() (val uint16) {
-	binary.Read(t.f, binary.BigEndian, &val)
+	if err := binary.Read(t.f, binary.BigEndian, &val); err != nil {
+		panic(err)
+	}
 	return
 }
 
 func (t *ttfParser) ReadShort() (val int16) {
-	binary.Read(t.f, binary.BigEndian, &val)
+	if err := binary.Read(t.f, binary.BigEndian, &val); err != nil {
+		panic(err)
+	}
 	return
 }
 
 func (t *ttfParser) ReadULong() (val uint32) {
-	binary.Read(t.f, binary.BigEndian, &val)
+	if err := binary.Read(t.f, binary.BigEndian, &val); err != nil {
+		panic(err)
+	}
 	return
 }

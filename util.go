@@ -85,7 +85,7 @@ func slicesEqual(a, b []float64) bool {
 func sliceCompress(data []byte) []byte {
 	var buf bytes.Buffer
 	cmp, _ := zlib.NewWriterLevel(&buf, zlib.BestSpeed)
-	cmp.Write(data)
+	_, _ = cmp.Write(data)
 	cmp.Close()
 	return buf.Bytes()
 }
@@ -94,7 +94,6 @@ func sliceCompress(data []byte) []byte {
 func sliceUncompress(data []byte) (outData []byte, err error) {
 	inBuf := bytes.NewReader(data)
 	r, err := zlib.NewReader(inBuf)
-	defer r.Close()
 	if err == nil {
 		var outBuf bytes.Buffer
 		_, err = outBuf.ReadFrom(r)
@@ -102,6 +101,7 @@ func sliceUncompress(data []byte) (outData []byte, err error) {
 			outData = outBuf.Bytes()
 		}
 	}
+	defer r.Close()
 	return
 }
 
@@ -321,14 +321,14 @@ func (s *SizeType) ScaleToHeight(height float64) SizeType {
 	return SizeType{width, height}
 }
 
-//The untypedKeyMap structure and its methods are copyrighted 2019 by Arteom Korotkiy (Gmail: arteomkorotkiy).
-//Imitation of untyped Map Array
+// The untypedKeyMap structure and its methods are copyrighted 2019 by Arteom Korotkiy (Gmail: arteomkorotkiy).
+// Imitation of untyped Map Array
 type untypedKeyMap struct {
 	keySet   []interface{}
 	valueSet []int
 }
 
-//Get position of key=>value in PHP Array
+// Get position of key=>value in PHP Array
 func (pa *untypedKeyMap) getIndex(key interface{}) int {
 	if key != nil {
 		for i, mKey := range pa.keySet {
@@ -341,7 +341,7 @@ func (pa *untypedKeyMap) getIndex(key interface{}) int {
 	return -1
 }
 
-//Put key=>value in PHP Array
+// Put key=>value in PHP Array
 func (pa *untypedKeyMap) put(key interface{}, value int) {
 	if key == nil {
 		var i int
@@ -365,7 +365,7 @@ func (pa *untypedKeyMap) put(key interface{}, value int) {
 	}
 }
 
-//Delete value in PHP Array
+// Delete value in PHP Array
 func (pa *untypedKeyMap) delete(key interface{}) {
 	if pa == nil || pa.keySet == nil || pa.valueSet == nil {
 		return
@@ -385,7 +385,7 @@ func (pa *untypedKeyMap) delete(key interface{}) {
 	}
 }
 
-//Get value from PHP Array
+// Get value from PHP Array
 func (pa *untypedKeyMap) get(key interface{}) int {
 	i := pa.getIndex(key)
 	if i >= 0 {
@@ -394,13 +394,13 @@ func (pa *untypedKeyMap) get(key interface{}) int {
 	return 0
 }
 
-//Imitation of PHP function pop()
+// Imitation of PHP function pop()
 func (pa *untypedKeyMap) pop() {
 	pa.keySet = pa.keySet[:len(pa.keySet)-1]
 	pa.valueSet = pa.valueSet[:len(pa.valueSet)-1]
 }
 
-//Imitation of PHP function array_merge()
+// Imitation of PHP function array_merge()
 func arrayMerge(arr1, arr2 *untypedKeyMap) *untypedKeyMap {
 	answer := untypedKeyMap{}
 	if arr1 == nil && arr2 == nil {
