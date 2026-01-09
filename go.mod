@@ -1,4 +1,4 @@
-module gofpdf
+module github.com/ramisback/gofpdf
 
 go 1.25.5
 

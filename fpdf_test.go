@@ -32,9 +32,10 @@ import (
 	"testing"
 	"time"
 
-	"gofpdf"
-	"gofpdf/internal/example"
-	"gofpdf/internal/files"
+	"github.com/ramisback/gofpdf/internal/example"
+	"github.com/ramisback/gofpdf/internal/files"
+
+	"github.com/ramisback/gofpdf"
 )
 
 func init() {
@@ -42,9 +43,16 @@ func init() {
 }
 
 func cleanup() {
-	if err := filepath.Walk(example.PdfDir(),
+	pdfDir := example.PdfDir()
+	if _, err := os.Stat(pdfDir); os.IsNotExist(err) {
+		return
+	}
+	if err := filepath.Walk(pdfDir,
 		func(path string, info os.FileInfo, err error) (reterr error) {
-			if info.Mode().IsRegular() {
+			if err != nil {
+				return err
+			}
+			if info != nil && info.Mode().IsRegular() {
 				dir, _ := filepath.Split(path)
 				if "reference" != filepath.Base(dir) {
 					if len(path) > 3 {

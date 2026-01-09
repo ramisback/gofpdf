@@ -5,9 +5,9 @@ import (
 
 	"github.com/boombuler/barcode/code128"
 	"github.com/boombuler/barcode/qr"
-	"gofpdf"
-	"gofpdf/contrib/barcode"
-	"gofpdf/internal/example"
+	"github.com/ramisback/gofpdf"
+	"github.com/ramisback/gofpdf/contrib/barcode"
+	"github.com/ramisback/gofpdf/internal/example"
 )
 
 func createPdf() (pdf *gofpdf.Fpdf) {

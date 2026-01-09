@@ -19,7 +19,7 @@ package example_test
 import (
 	"errors"
 
-	"gofpdf/internal/example"
+	"github.com/ramisback/gofpdf/internal/example"
 )
 
 // ExampleFilename tests the Filename() and Summary() functions.
